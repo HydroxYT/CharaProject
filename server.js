@@ -48,7 +48,7 @@ const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || 'voice-bridge-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { 
+    cookie: {
         secure: false, // Set to true if using HTTPS
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
@@ -65,7 +65,7 @@ io.use((socket, next) => {
 // ============================================
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    
+
     if (username === LOGIN_USERNAME && password === LOGIN_PASSWORD) {
         req.session.authenticated = true;
         req.session.username = username;
@@ -116,25 +116,25 @@ discordClient.once(Events.ClientReady, () => {
 discordClient.on(Events.MessageCreate, async (message) => {
     // Ignore bot messages
     if (message.author.bot) return;
-    
+
     // Check if bot was mentioned
     if (!message.mentions.has(discordClient.user)) return;
-    
+
     // Check if user is in a voice channel
     const member = message.member;
     if (!member?.voice?.channel) {
         await message.reply('❌ You need to be in a voice channel for me to join!');
         return;
     }
-    
+
     const voiceChannel = member.voice.channel;
-    
+
     try {
         // Leave existing connection if any
         if (currentVoiceConnection) {
             currentVoiceConnection.destroy();
         }
-        
+
         // Join the voice channel
         currentVoiceConnection = joinVoiceChannel({
             channelId: voiceChannel.id,
@@ -143,31 +143,31 @@ discordClient.on(Events.MessageCreate, async (message) => {
             selfDeaf: false,
             selfMute: false
         });
-        
+
         currentVoiceChannel = voiceChannel;
-        
+
         // Create audio player
         audioPlayer = createAudioPlayer();
         currentVoiceConnection.subscribe(audioPlayer);
-        
+
         // Handle connection state changes
         currentVoiceConnection.on(VoiceConnectionStatus.Ready, () => {
             console.log(`🔊 Connected to voice channel: ${voiceChannel.name}`);
             notifySocketOfStatus();
-            
+
             // Start receiving audio from Discord
             startReceivingDiscordAudio();
         });
-        
+
         currentVoiceConnection.on(VoiceConnectionStatus.Disconnected, () => {
             console.log('🔇 Disconnected from voice channel');
             currentVoiceConnection = null;
             currentVoiceChannel = null;
             notifySocketOfStatus();
         });
-        
+
         await message.reply(`✅ Joined **${voiceChannel.name}**! Your friend can now connect through the web interface.`);
-        
+
     } catch (error) {
         console.error('Error joining voice channel:', error);
         await message.reply('❌ Failed to join the voice channel.');
@@ -180,27 +180,27 @@ discordClient.on(Events.MessageCreate, async (message) => {
 function startReceivingDiscordAudio() {
     if (!currentVoiceConnection || isReceivingAudio) return;
     isReceivingAudio = true;
-    
+
     const receiver = currentVoiceConnection.receiver;
-    
+
     receiver.speaking.on('start', (userId) => {
         // Don't capture our own audio
         if (userId === discordClient.user.id) return;
-        
+
         const audioStream = receiver.subscribe(userId, {
             end: {
                 behavior: EndBehaviorType.AfterSilence,
                 duration: 100
             }
         });
-        
+
         // Decode Opus to PCM
         const decoder = new prism.opus.Decoder({
             rate: 48000,
             channels: 2,
             frameSize: 960
         });
-        
+
         audioStream.pipe(decoder).on('data', (chunk) => {
             if (connectedSocket) {
                 // Convert to base64 and send to browser
@@ -215,9 +215,9 @@ function startReceivingDiscordAudio() {
 // ============================================
 function playAudioToDiscord(audioData) {
     if (!currentVoiceConnection || !audioPlayer) return;
-    
+
     audioQueue.push(audioData);
-    
+
     if (!isPlaying) {
         processAudioQueue();
     }
@@ -228,34 +228,34 @@ function processAudioQueue() {
         isPlaying = false;
         return;
     }
-    
+
     isPlaying = true;
     const audioData = audioQueue.shift();
-    
+
     try {
         // Create a readable stream from the audio data
         const audioBuffer = Buffer.from(audioData, 'base64');
         const stream = new PassThrough();
         stream.end(audioBuffer);
-        
+
         // Create an Opus encoder for Discord
         const encoder = new prism.opus.Encoder({
             rate: 48000,
             channels: 2,
             frameSize: 960
         });
-        
+
         const opusStream = stream.pipe(encoder);
         const resource = createAudioResource(opusStream, {
             inputType: 'opus'
         });
-        
+
         audioPlayer.play(resource);
-        
+
         audioPlayer.once(AudioPlayerStatus.Idle, () => {
             processAudioQueue();
         });
-        
+
     } catch (error) {
         console.error('Error playing audio:', error);
         isPlaying = false;
@@ -268,7 +268,7 @@ function processAudioQueue() {
 // ============================================
 io.on('connection', (socket) => {
     const session = socket.request.session;
-    
+
     // Check authentication
     if (!session?.authenticated) {
         console.log('❌ Unauthenticated socket connection rejected');
@@ -276,23 +276,23 @@ io.on('connection', (socket) => {
         socket.disconnect();
         return;
     }
-    
+
     console.log(`🔌 Web client connected: ${session.username}`);
     connectedSocket = socket;
-    
+
     // Send current status
     notifySocketOfStatus();
-    
+
     // Handle audio from browser
     socket.on('audio-out', (audioData) => {
         playAudioToDiscord(audioData);
     });
-    
+
     // Handle mute toggle
     socket.on('mute', (isMuted) => {
         console.log(`🎤 User ${isMuted ? 'muted' : 'unmuted'}`);
     });
-    
+
     // Handle disconnect
     socket.on('disconnect', () => {
         console.log(`🔌 Web client disconnected: ${session.username}`);
@@ -300,7 +300,7 @@ io.on('connection', (socket) => {
             connectedSocket = null;
         }
     });
-    
+
     // Handle request to leave voice channel
     socket.on('leave-voice', () => {
         if (currentVoiceConnection) {
@@ -316,7 +316,7 @@ io.on('connection', (socket) => {
 
 function notifySocketOfStatus() {
     if (!connectedSocket) return;
-    
+
     connectedSocket.emit('status', {
         connected: !!currentVoiceConnection,
         channelName: currentVoiceChannel?.name || null,
@@ -337,8 +337,16 @@ server.listen(PORT, () => {
 });
 
 // Login to Discord
-discordClient.login(BOT_TOKEN).catch((error) => {
-    console.error('❌ Failed to login to Discord:', error.message);
+console.log('🔄 Attempting to login to Discord...');
+console.log(`🔑 Token check: starts with "${BOT_TOKEN.substring(0, 5)}..." (Length: ${BOT_TOKEN.length})`);
+
+discordClient.login(BOT_TOKEN).then(() => {
+    console.log('✅ Discord login request sent successfully (waiting for ready event)');
+}).catch((error) => {
+    console.error('❌ Failed to login to Discord');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    if (error.code) console.error('Error code:', error.code);
     process.exit(1);
 });
 
