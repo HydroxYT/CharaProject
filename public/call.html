@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Bridge - Call</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="call-page">
+    <div class="animated-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="call-container">
+        <div class="call-card">
+            <!-- Header with status -->
+            <div class="call-header">
+                <div class="status-indicator" id="statusIndicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="statusText">Connecting...</span>
+                </div>
+                <button class="logout-btn" id="logoutBtn" title="Logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Channel Info -->
+            <div class="channel-info" id="channelInfo">
+                <div class="channel-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 3C10.34 3 9 4.37 9 6.07V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V6.07C15 4.37 13.66 3 12 3Z" />
+                        <path
+                            d="M17 11C17 14.53 14.39 17.44 11 17.93V21H13V23H11H9V21H11V17.93C7.61 17.44 5 14.53 5 11H7C7 13.76 9.24 16 12 16C14.76 16 17 13.76 17 11H19C19 14.53 16.39 17.44 13 17.93V21H11V17.93C7.61 17.44 5 14.53 5 11H7C7 13.76 9.24 16 12 16C14.76 16 17 13.76 17 11H19H17Z" />
+                    </svg>
+                </div>
+                <div class="channel-details">
+                    <span class="channel-name" id="channelName">Waiting for connection...</span>
+                    <span class="guild-name" id="guildName">Ask someone to ping the bot in Discord</span>
+                </div>
+            </div>
+
+            <!-- Audio Visualizer -->
+            <div class="visualizer-container">
+                <div class="visualizer" id="visualizer">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+                <div class="speaking-indicator" id="speakingIndicator">
+                    <span>You're speaking</span>
+                </div>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="volume-control">
+                <label for="volumeSlider">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="volume-icon">
+                        <path
+                            d="M3 9V15H7L12 20V4L7 9H3ZM16.5 12C16.5 10.23 15.48 8.71 14 7.97V16.02C15.48 15.29 16.5 13.77 16.5 12ZM14 3.23V5.29C16.89 6.15 19 8.83 19 12C19 15.17 16.89 17.85 14 18.71V20.77C18.01 19.86 21 16.28 21 12C21 7.72 18.01 4.14 14 3.23Z" />
+                    </svg>
+                </label>
+                <input type="range" id="volumeSlider" min="0" max="100" value="100">
+                <span class="volume-value" id="volumeValue">100%</span>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="call-controls">
+                <button class="control-btn mute-btn" id="muteBtn">
+                    <svg class="mic-on" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14ZM17 11C17 14 14.76 16.44 12 16.93V19H14V21H10V19H12V16.93C9.24 16.44 7 14 7 11H9C9 13.21 10.79 15 12 15C13.21 15 15 13.21 15 11H17Z" />
+                    </svg>
+                    <svg class="mic-off" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M19 11H17C17 11.74 16.78 12.42 16.42 13L17.85 14.43C18.57 13.49 19 12.3 19 11ZM14.98 11.17C14.98 11.11 15 11.06 15 11V5C15 3.34 13.66 2 12 2C10.34 2 9 3.34 9 5V5.18L14.98 11.17ZM4.27 3L3 4.27L9.01 10.28V11C9.01 12.66 10.34 14 12 14C12.22 14 12.44 13.97 12.65 13.92L14.31 15.58C13.6 15.91 12.81 16.1 12 16.1C9.24 16.1 6.7 14 6.7 11H4.7C4.7 14.41 7.44 17.2 11 17.72V21H13V17.72C13.91 17.59 14.77 17.27 15.54 16.82L19.73 21L21 19.73L4.27 3Z" />
+                    </svg>
+                    <span class="btn-label">Mute</span>
+                </button>
+
+                <button class="control-btn disconnect-btn" id="disconnectBtn">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 9C10.4 9 8.85 9.25 7.4 9.72V12.82C7.4 13.22 7.17 13.56 6.84 13.72C5.86 14.21 4.97 14.84 4.18 15.57C3.95 15.8 3.59 15.8 3.36 15.57L1.29 13.5C1.06 13.27 1.06 12.88 1.29 12.65C4.36 9.65 8.14 8 12 8C15.86 8 19.64 9.65 22.71 12.65C22.94 12.88 22.94 13.27 22.71 13.5L20.64 15.57C20.41 15.8 20.05 15.8 19.82 15.57C19.03 14.84 18.14 14.21 17.16 13.72C16.83 13.56 16.6 13.22 16.6 12.82V9.72C15.15 9.25 13.6 9 12 9Z" />
+                    </svg>
+                    <span class="btn-label">Disconnect</span>
+                </button>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions" id="instructions">
+                <p><strong>How to connect:</strong></p>
+                <ol>
+                    <li>Ask someone in Discord to ping the bot while in a voice channel</li>
+                    <li>Once connected, you'll see the channel name above</li>
+                    <li>Allow microphone access when prompted</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden audio element for playback -->
+    <audio id="audioPlayer" autoplay></audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/call.js"></script>
+</body>
+
+</html>
