@@ -89,6 +89,8 @@ app.post('/api/logout', (req, res) => {
 // ============================================
 // Discord Bot Setup
 // ============================================
+console.log('📝 Initializing Discord Client with intents: Guilds, GuildMessages, MessageContent, GuildVoiceStates');
+
 const discordClient = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -96,6 +98,18 @@ const discordClient = new Client({
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildVoiceStates
     ]
+});
+
+// Debug: Log when we get specific events
+discordClient.on('debug', (info) => {
+    // Filter out heartbeat messages to keep logs clean
+    if (!info.includes('Heartbeat')) {
+        console.log(`[Discord Debug] ${info}`);
+    }
+});
+
+discordClient.on('error', (error) => {
+    console.error('❌ Discord Client Error:', error);
 });
 
 let currentVoiceConnection = null;
