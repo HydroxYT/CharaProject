@@ -124,6 +124,16 @@ let isPlaying = false;
 
 discordClient.once(Events.ClientReady, () => {
     console.log(`🤖 Discord bot logged in as ${discordClient.user.tag}`);
+
+    // Start Web Server ONLY after bot is ready
+    server.listen(PORT, () => {
+        console.log(`\n🌐 Voice Bridge server running at http://localhost:${PORT}`);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📋 Setup Instructions:');
+        console.log('   1. Ping the bot in Discord while in a voice channel');
+        console.log('   2. Open the web interface and login');
+        console.log('   3. Start talking!\n');
+    });
 });
 
 // Handle bot mentions to join voice channel
@@ -341,14 +351,7 @@ function notifySocketOfStatus() {
 // ============================================
 // Start Server
 // ============================================
-server.listen(PORT, () => {
-    console.log(`\n🌐 Voice Bridge server running at http://localhost:${PORT}`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📋 Setup Instructions:');
-    console.log('   1. Ping the bot in Discord while in a voice channel');
-    console.log('   2. Open the web interface and login');
-    console.log('   3. Start talking!\n');
-});
+// Web Server start moved to ClientReady event
 
 // Login to Discord
 console.log('🔄 Attempting to login to Discord...');
